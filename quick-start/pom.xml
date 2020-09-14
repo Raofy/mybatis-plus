@@ -36,18 +36,35 @@
             </exclusions>
         </dependency>
 
+        <!--        配置Mysql依赖-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.49</version>
+            <scope>runtime</scope>
+        </dependency>
 
+        <!--        配置lombok依赖-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
 
+        <!--        配置Mybatis-plus依赖-->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.4.0</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.testifyproject.junit4/junit4-core -->
+        <dependency>
+            <groupId>org.testifyproject.junit4</groupId>
+            <artifactId>junit4-core</artifactId>
+            <version>1.0.6</version>
+        </dependency>
+
     </dependencies>
 
     <build>
