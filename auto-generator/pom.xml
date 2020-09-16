@@ -51,12 +51,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!--        配置Mybatis-plus依赖-->
-<!--        <dependency>-->
-<!--            <groupId>com.baomidou</groupId>-->
-<!--            <artifactId>mybatis-plus-boot-starter</artifactId>-->
-<!--            <version>3.4.0</version>-->
-<!--        </dependency>-->
 
         <!--freemarker代码生成模板引擎-->
         <dependency>
