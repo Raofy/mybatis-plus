@@ -1,12 +1,17 @@
 
 spring:
   datasource:
-    url:  jdbc:mysql://localhost:3306/mybatisplus?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url:  jdbc:mysql://47.112.240.174:3306/mybatis-plus?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
-    password: 123456
+    password: MyNewPass4!
     driver-class-name: com.mysql.jdbc.Driver
 
-#mybatis-plus���ÿ���̨��ӡ����������SQL���
+#mybatis-plus日志打印配置
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      #logic-delete-field: flag  # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)

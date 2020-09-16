@@ -1,7 +1,7 @@
 package com.ryan.crud.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import entity.User;
+import com.ryan.crud.entity.User;
 
 
 /**
