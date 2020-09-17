@@ -1,6 +1,6 @@
-package com.ryan.mybatisplus.fuyi.mapper;
+package com.ryan.autocond.mapper;
 
-import com.ryan.mybatisplus.fuyi.entity.User;
+import com.ryan.autocond.entity.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * </p>
  *
  * @author fuyi
- * @since 2020-09-15
+ * @since 2020-09-17
  */
 public interface UserMapper extends BaseMapper<User> {
 

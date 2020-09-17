@@ -1,4 +1,4 @@
-package com.ryan.mybatisplus.fuyi.controller;
+package com.ryan.autocond.controller;
 
 
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
  * </p>
  *
  * @author fuyi
- * @since 2020-09-15
+ * @since 2020-09-17
  */
 @RestController
-@RequestMapping("/fuyi/user")
+@RequestMapping("/autocond/user")
 public class UserController {
 
 }
