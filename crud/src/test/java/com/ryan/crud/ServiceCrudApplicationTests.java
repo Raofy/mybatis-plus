@@ -1,5 +1,6 @@
 package com.ryan.crud;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ryan.crud.entity.User;
 import com.ryan.crud.mapper.UserMapper;
@@ -146,5 +147,64 @@ class ServiceCrudApplicationTests {
     void logicDeleteTest() {
         userMapper.deleteBatchIds(Arrays.asList(1, 2, 3, 4));
         userMapper.selectList(null).forEach(System.out::println);
+    }
+
+    /**
+     * 性能分析插件
+     */
+    @Test
+    void  performanceAnalysis() {
+        userMapper.selectList(null);
+    }
+
+    /**
+     * QueryWrapper条件匹配
+     *
+     */
+    @Test
+    void QueryWrapperTest() {
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+
+        /**
+         * 单一条件匹配
+         */
+        //匹配名字为Billie的记录
+//        userQueryWrapper.eq("name", "Billie");
+//        User user = userMapper.selectOne(userQueryWrapper);
+//        log.info(user.toString());
+
+
+        /**
+         * 多条件查询
+         */
+        //查询条件：年纪在24~200之间，并且名字不为空
+//        userQueryWrapper.between("age",24, 200).isNotNull("name");
+//        userMapper.selectList(userQueryWrapper).forEach(System.out::println);
+
+
+        /**
+         * 根据条件进行统计
+         */
+        //统计年纪大于24的总的记录数
+//        userQueryWrapper.gt("age", 24);
+//        Integer integer = userMapper.selectCount(userQueryWrapper);
+//        log.info("满足条件的数目为：" + integer);
+
+
+        /**
+         * 模糊查询
+         */
+        //查询名字字段里面含有字母o的记录
+//        userQueryWrapper.like("name", "o");
+//        userMapper.selectList(userQueryWrapper).forEach(System.out::println);
+
+
+        /**
+         * SQL拼接
+         */
+        //查询年纪大于24的所有记录
+        userQueryWrapper.inSql("age", "select age from user where age > 24");
+        userMapper.selectList(userQueryWrapper).forEach(System.out::println);
+
     }
 }

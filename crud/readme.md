@@ -1,7 +1,5 @@
 # CURD接口
 
-#### service CURD
-
 #### Mapper CURD
 
 - insert操作
@@ -300,26 +298,26 @@
         
     乐观锁的执行方式
         
-        - 取出数据时，获取当前的version
-        
-        - 更新的时候带上这个version
-        
-        - 执行更新时候，set version = new version where version = old vesion
-        
-        - 如果version不对，则更新失败
-        
-         实现原理
-         
-         ```sql
-         -- A线程执行更新操作
-         update user set name = "fuyi", version = version + 1 where id = 2 and version = 1;
-         
-         -- B线程也更新数据
-         update user set name = "xiaohung", version = version + 1 where id = 2 and version = 1;
-         ```
-         虽然A线程首先开始执行更新操作，但是后面的B线程后来居上，首先完成更新操作，此时记录中的version = 2，因为A线程在执行更新操作之前首先先查询
-         
-         version值并记录（此时为1），当执行更新的时候，发现version已经发生变化，导致更新失败，以此来实现线程间的通信安全。
+    - 取出数据时，获取当前的version
+    
+    - 更新的时候带上这个version
+    
+    - 执行更新时候，set version = new version where version = old vesion
+    
+    - 如果version不对，则更新失败
+    
+     实现原理
+     
+     ```sql
+     -- A线程执行更新操作
+     update user set name = "fuyi", version = version + 1 where id = 2 and version = 1;
+     
+     -- B线程也更新数据
+     update user set name = "xiaohung", version = version + 1 where id = 2 and version = 1;
+     ```
+     虽然A线程首先开始执行更新操作，但是后面的B线程后来居上，首先完成更新操作，此时记录中的version = 2，因为A线程在执行更新操作之前首先先查询
+     
+     version值并记录（此时为1），当执行更新的时候，发现version已经发生变化，导致更新失败，以此来实现线程间的通信安全。
            
     Mybatis-Plus实现乐观锁
     
@@ -699,6 +697,267 @@
   User(id=5, name=Billie, age=24, email=test5@baomidou.com, version=1, deleted=0)
 
    ```
+  
+  
+- 条件构造器
+    
+    - QueryWrapper
+    
+      单一条件匹配
+        
+        ```java
+            QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+    
+            /**
+             * 单一条件匹配
+             */
+            //匹配名字为Billie的记录
+            userQueryWrapper.eq("name", "Billie");
+            User user = userMapper.selectOne(userQueryWrapper);
+            log.info(user.toString());
+        ```
+        
+      测试结果
+        
+        ```text
+          Creating a new SqlSession
+          SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@557a84fe] was not registered for synchronization because synchronization is not active
+          2020-09-17 10:11:30.632  INFO 19404 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+          2020-09-17 10:11:31.516  INFO 19404 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+          JDBC Connection [HikariProxyConnection@1489099273 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@2b2954e1] will not be managed by Spring
+          ==>  Preparing: SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (name = ?)
+          ==> Parameters: Billie(String)
+           Consume Time：23 ms 2020-09-17 10:11:31
+           Execute SQL：SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (name = 'Billie')
+          
+          <==    Columns: id, name, age, email, version, deleted
+          <==        Row: 5, Billie, 24, test5@baomidou.com, 1, 0
+          <==      Total: 1
+          Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@557a84fe]
+        ```
+      
+      多条件匹配
+      
+      ```java
+        /**
+         * 多条件查询
+         */
+        //查询条件：年纪在24~200之间，并且名字不为空
+        userQueryWrapper.between("age",24, 200).isNotNull("name");
+        userMapper.selectList(userQueryWrapper).forEach(System.out::println);
+      ```
+      
+      测试结果
+      
+      ```text
+      Creating a new SqlSession
+      SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3ac3f6f] was not registered for synchronization because synchronization is not active
+      2020-09-17 10:14:05.765  INFO 11392 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+      2020-09-17 10:14:06.132  INFO 11392 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+      JDBC Connection [HikariProxyConnection@836449498 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@109f8c7e] will not be managed by Spring
+      ==>  Preparing: SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (age BETWEEN ? AND ? AND name IS NOT NULL)
+      ==> Parameters: 24(Integer), 200(Integer)
+       Consume Time：28 ms 2020-09-17 10:14:06
+       Execute SQL：SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (age BETWEEN 24 AND 200 AND name IS NOT NULL)
+      
+      <==    Columns: id, name, age, email, version, deleted
+      <==        Row: 1, xiaofan, 180, test1@baomidou.com, 3, 0
+      <==        Row: 3, Tom, 28, test3@baomidou.com, 1, 0
+      <==        Row: 5, Billie, 24, test5@baomidou.com, 1, 0
+      <==      Total: 3
+      Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3ac3f6f]
+      User(id=1, name=xiaofan, age=180, email=test1@baomidou.com, version=3, deleted=0)
+      User(id=3, name=Tom, age=28, email=test3@baomidou.com, version=1, deleted=0)
+      User(id=5, name=Billie, age=24, email=test5@baomidou.com, version=1, deleted=0)
+      ```
+      
+      条件统计
+      
+      ```java
+        /**
+         * 根据条件进行统计
+         */
+        //统计年纪大于24的总的记录数
+        userQueryWrapper.gt("age", 24);
+        Integer integer = userMapper.selectCount(userQueryWrapper);
+        log.info("满足条件的数目为：" + integer);
+       ```
+      
+      测试结果
+      
+      ```text
+      Creating a new SqlSession
+      SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@557a84fe] was not registered for synchronization because synchronization is not active
+      2020-09-17 10:17:44.815  INFO 3864 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+      2020-09-17 10:17:45.300  INFO 3864 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+      JDBC Connection [HikariProxyConnection@1489099273 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@2b2954e1] will not be managed by Spring
+      ==>  Preparing: SELECT COUNT( 1 ) FROM user WHERE deleted=0 AND (age > ?)
+      ==> Parameters: 24(Integer)
+       Consume Time：15 ms 2020-09-17 10:17:45
+       Execute SQL：SELECT COUNT( 1 ) FROM user WHERE deleted=0 AND (age > 24)
+      
+      <==    Columns: COUNT( 1 )
+      <==        Row: 2
+      <==      Total: 1
+      Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@557a84fe]
+      2020-09-17 10:17:45.360  INFO 3864 --- [           main] c.ryan.crud.ServiceCrudApplicationTests  : 满足条件的数目为：2
+
+       ```
+      
+      模糊查询
+      
+      ```java
+        /**
+         * 模糊查询
+         */
+        //查询名字字段里面含有字母o的记录
+        userQueryWrapper.like("name", "o");
+        userMapper.selectList(userQueryWrapper).forEach(System.out::println)
+      ```
+      
+      测试结果
+      
+      ```text
+      Creating a new SqlSession
+      SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1abebef3] was not registered for synchronization because synchronization is not active
+      2020-09-17 10:21:06.039  INFO 14984 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+      2020-09-17 10:21:06.422  INFO 14984 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+      JDBC Connection [HikariProxyConnection@379972461 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@7e307087] will not be managed by Spring
+      ==>  Preparing: SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (name LIKE ?)
+      ==> Parameters: %o%(String)
+       Consume Time：14 ms 2020-09-17 10:21:06
+       Execute SQL：SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (name LIKE '%o%')
+      
+      <==    Columns: id, name, age, email, version, deleted
+      <==        Row: 1, xiaofan, 180, test1@baomidou.com, 3, 0
+      <==        Row: 3, Tom, 28, test3@baomidou.com, 1, 0
+      <==      Total: 2
+      Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1abebef3]
+      User(id=1, name=xiaofan, age=180, email=test1@baomidou.com, version=3, deleted=0)
+      User(id=3, name=Tom, age=28, email=test3@baomidou.com, version=1, deleted=0)  
+      ```
+      
+      SQL拼接
+      
+      ```java
+        /**
+         * SQL拼接
+         */
+        //查询年纪大于24的所有记录
+        userQueryWrapper.inSql("age", "select age from user where age > 24");
+        userMapper.selectList(userQueryWrapper).forEach(System.out::println);
+      ```
+      
+      测试结果
+      
+      ```text
+      Creating a new SqlSession
+      SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a0d96a5] was not registered for synchronization because synchronization is not active
+      2020-09-17 10:22:55.127  INFO 14136 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+      2020-09-17 10:22:55.519  INFO 14136 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+      JDBC Connection [HikariProxyConnection@313334570 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@3134153d] will not be managed by Spring
+      ==>  Preparing: SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (age IN (select age from user where age > 24))
+      ==> Parameters: 
+       Consume Time：21 ms 2020-09-17 10:22:55
+       Execute SQL：SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0 AND (age IN (select age from user where age > 24))
+      
+      <==    Columns: id, name, age, email, version, deleted
+      <==        Row: 1, xiaofan, 180, test1@baomidou.com, 3, 0
+      <==        Row: 3, Tom, 28, test3@baomidou.com, 1, 0
+      <==      Total: 2
+      Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1a0d96a5]
+      User(id=1, name=xiaofan, age=180, email=test1@baomidou.com, version=3, deleted=0)
+      User(id=3, name=Tom, age=28, email=test3@baomidou.com, version=1, deleted=0)
+      ```
+    
+
+- 性能分析
+
+    执行SQL语句分析打印，使用的p6spy组件
+
+    - 配置pom.xml依赖
+    
+    ```xml
+        <!-- 性能分析插件依赖 -->
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.9.1</version>
+        </dependency>
+    ```
+   
+   - 配置yaml文件
+   
+  ```yaml 
+     spring:
+       datasource:
+         driver-class-name: com.p6spy.engine.spy.P6SpyDriver
+         url: jdbc:p6spy:mysql://47.112.240.174:3306/mybatis-plus?useUnicode=true&characterEncoding=utf-8&useSSL=false
+         username: root
+         password: MyNewPass4!
+   ```
+  
+  - 在resource目录下创建spy.properties文件
+  
+  ```properties
+  #3.2.1以上使用
+  modulelist=com.baomidou.mybatisplus.extension.p6spy.MybatisPlusLogFactory,com.p6spy.engine.outage.P6OutageFactory
+  #3.2.1以下使用或者不配置
+  #modulelist=com.p6spy.engine.logging.P6LogFactory,com.p6spy.engine.outage.P6OutageFactory
+  # 自定义日志打印
+  logMessageFormat=com.baomidou.mybatisplus.extension.p6spy.P6SpyLogger
+  #日志输出到控制台
+  appender=com.baomidou.mybatisplus.extension.p6spy.StdoutLogger
+  # 使用日志系统记录 sql
+  #appender=com.p6spy.engine.spy.appender.Slf4JLogger
+  # 设置 p6spy driver 代理
+  deregisterdrivers=true
+  # 取消JDBC URL前缀
+  useprefix=true
+  # 配置记录 Log 例外,可去掉的结果集有error,info,batch,debug,statement,commit,rollback,result,resultset.
+  excludecategories=info,debug,result,commit,resultset
+  # 日期格式
+  dateformat=yyyy-MM-dd HH:mm:ss
+  # 实际驱动可多个
+  #driverlist=org.h2.Driver
+  # 是否开启慢SQL记录
+  outagedetection=true
+  # 慢SQL记录标准 2 秒
+  outagedetectioninterval=2
+  ```
+  
+  - 测试代码
+  
+  ```java
+        /**
+         * 性能分析插件
+         */
+        @Test
+        void  performanceAnalysis() {
+            userMapper.selectList(null);
+        }
+  ```
+  
+  - 运行结果
+  
+  ```text
+    Creating a new SqlSession
+    SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3f183caa] was not registered for synchronization because synchronization is not active
+    2020-09-17 09:37:06.689  INFO 19012 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+    2020-09-17 09:37:07.071  INFO 19012 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+    JDBC Connection [HikariProxyConnection@1412392963 wrapping com.p6spy.engine.wrapper.ConnectionWrapper@5583098b] will not be managed by Spring
+    ==>  Preparing: SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0
+    ==> Parameters: 
+    Consume Time：15 ms 2020-09-17 09:37:07
+    Execute SQL：SELECT id,name,age,email,version,deleted FROM user WHERE deleted=0
+    
+    <==    Columns: id, name, age, email, version, deleted
+    <==        Row: 5, Billie, 24, test5@baomidou.com, 1, 0
+    <==      Total: 1
+    Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3f183caa]
+   ```
+  
+  
 
 
   
